@@ -1,0 +1,7 @@
+aNumber = 3
+double aNumber
+
+aFunctionReturn = sum 5 3
+double aFunctionReturn
+
+sum aNumber aFunctionReturn

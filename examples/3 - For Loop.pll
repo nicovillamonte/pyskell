@@ -1,0 +1,5 @@
+for i 3
+  double 5
+
+for variable 4
+  double (variable+10)/(4/(variable+1))

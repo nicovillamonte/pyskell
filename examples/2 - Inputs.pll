@@ -1,0 +1,17 @@
+-- The question mark means user input.
+sum ? ?
+
+-- We can number them to differentiate the entries.
+sum ?1 ?2
+
+-- We can also give them names.
+sum ?Num1 ?Num2
+
+-- Spaces can even be used by enclosing everything in quotes.
+sum ?"Enter the first value:" ?"Enter the second value:"
+
+-- If the same name is used in several sections of the program, the same value will be usedr
+log "Sum" ?num
+sum ?num ?num
+log "Double"
+double ?num
