@@ -1,0 +1,8 @@
+log "Sleeps in parallel:"
+parallel
+  parallel
+    sleep 2
+    sleep 4
+  sleep 3
+  log "Estoy al final pero me termino de ejecutar primero"
+log "Fin del programa"

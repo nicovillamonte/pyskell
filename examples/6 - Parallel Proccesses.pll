@@ -1,0 +1,4 @@
+log "Sleeps in parallel:"
+parallel
+  sleep 3
+  sleep 2
