@@ -1,4 +1,4 @@
 log "Fibonacci in concurrent:"
-parallel
+concurrent
   fibonacci 30
   fibonacci 29
