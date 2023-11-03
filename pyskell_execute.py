@@ -1,5 +1,6 @@
 from pyskell_utils import *
 from multiprocessing import Process
+from threading import Thread
 import re
 import shlex
 from pyskell_shared_global import variables, variables_inputs, execution_config
@@ -157,7 +158,7 @@ def get_block_from_prebuild_command(id):
     } if block_started and end_match else None
 
 
-def run_parallel_block(block):
+def run_parallel_block(block, concurrency):
     code = []
     proccesses_to_wait = []
     files_to_delete = []
@@ -173,7 +174,8 @@ def run_parallel_block(block):
             file_name = f"./dist/temp-{id}.rpll"
             with open(file_name, 'w+') as f:
                 f.writelines([line + '\n' for line in full_block])
-            block_proccess = Process(target=run_pll, args=(file_name, None,))
+            block_proccess = Process(target=run_pll, args=(file_name, None,)) if not concurrency else Thread(target=run_pll, args=(file_name, None,))
+            # block_proccess = Thread(target=run_pll, args=(file_name, None,))
 
             files_to_delete.append(file_name)
 
@@ -185,9 +187,21 @@ def run_parallel_block(block):
             code.append(command)
             i += 1
 
-    command_proccesses = [
-        Process(target=run_command, args=(command,)) for command in code if not command.startswith('--')
-    ]
+    
+    # command_proccesses = [
+    #     (Process(target=run_command, args=(command,)) for command in code if not command.startswith('--')) if not concurrency else
+    #     (Thread(target=run_command, args=(command,)) for command in code if not command.startswith('--'))
+    # ]
+    
+    command_proccesses = []
+    if concurrency:
+        command_proccesses = [
+            Thread(target=run_command, args=(command,)) for command in code if not command.startswith('--')
+        ]
+    else:
+        command_proccesses = [
+            Process(target=run_command, args=(command,)) for command in code if not command.startswith('--')
+        ]
 
     for proccess in command_proccesses:
         proccess.start()
@@ -201,8 +215,10 @@ def run_parallel_block(block):
     for file in files_to_delete:
         os.remove(file)
 
+def handle_concurrent_block(command):
+    handle_parallel_block(command, concurrency=True)
 
-def handle_parallel_block(command):
+def handle_parallel_block(command, concurrency=False):
     global loaded_program
     global pyskell_pc
 
@@ -221,7 +237,7 @@ def handle_parallel_block(command):
 
     loaded_program = new_loaded_program
 
-    run_parallel_block(parallel_block)
+    run_parallel_block(parallel_block, concurrency)
     pyskell_pc += len(parallel_block)
 
 
@@ -234,7 +250,8 @@ def handle_prebuild_command(command):
             return "continue"
 
         prebuild_commands = {
-            ':pl': handle_parallel_block
+            ':pl': handle_parallel_block,
+            ':co': handle_concurrent_block,
         }
         prebuild_commands.get(match.group(0), lambda: None)(command)
     else:

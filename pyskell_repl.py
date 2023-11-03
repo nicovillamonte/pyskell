@@ -8,6 +8,8 @@ def run_repl():
     print(f"Pyskell v{version}. For help type '!h' or 'help'.")
     while True:
         comando = input("> ")
+        if comando.replace(' ','') == '':
+            continue
 
         comando_split = None
         try:
