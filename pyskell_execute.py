@@ -174,8 +174,8 @@ def run_parallel_block(block, concurrency):
             file_name = f"./dist/temp-{id}.rpll"
             with open(file_name, 'w+') as f:
                 f.writelines([line + '\n' for line in full_block])
+            
             block_proccess = Process(target=run_pll, args=(file_name, None,)) if not concurrency else Thread(target=run_pll, args=(file_name, None,))
-            # block_proccess = Thread(target=run_pll, args=(file_name, None,))
 
             files_to_delete.append(file_name)
 
