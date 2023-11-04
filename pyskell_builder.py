@@ -43,23 +43,23 @@ def group_lines(lines):
     return parse_lines(lines)
 
 
-def build_complete_block(name, id, block):
-    return [f'_${id}$:{name}'] + block + [f'_${id}$;{name}']
+def build_complete_block(name, block, args = None):
+    unique_id = str(abs(hash(uuid.uuid4())))
+    return [f'_${unique_id}$:{name}' + ((f' {args}') if args is not None else '')] + block + [f'_${unique_id}$;{name}']
 
 def to_parallel_rpll_block(block):
     unique_name = 'pl'
-    unique_id = str(abs(hash(uuid.uuid4())))
-    return build_complete_block(unique_name, unique_id, block[1])
+    return build_complete_block(unique_name, block[1])
 
 def to_concurrent_rpll_block(block):
     unique_name = 'co'
-    unique_id = str(abs(hash(uuid.uuid4())))
-    return build_complete_block(unique_name, unique_id, block[1])
+    return build_complete_block(unique_name, block[1])
 
 def to_time_rpll_block(block):
+    split = block[0].split(' ', 1)
+    args = split[1] if len(split) > 1 else None
     unique_name = 'ti'
-    unique_id = str(abs(hash(uuid.uuid4())))
-    return build_complete_block(unique_name, unique_id, block[1])
+    return build_complete_block(unique_name, block[1], args)
 
 def to_for_rpll_block(block):
     command, block = block
@@ -102,6 +102,7 @@ def to_rpll_block(grouped_lines):
     output = []
     for block in grouped_lines:
         if isinstance(block, tuple):
+            out = handle_tuple_block(block)
             output.extend(
                 handle_tuple_block(block)
             )
@@ -150,17 +151,16 @@ def handle_for_loop_with_complex_evaluation(grouped_lines):
     return expanded_lines
 
 
-def handle_for_loop_with_cleaning(grouped_lines):
-    expanded_lines = to_rpll_block(grouped_lines)
+# def handle_for_loop_with_cleaning(grouped_lines):
+#     expanded_lines = to_rpll_block(grouped_lines)
 
-    cleaned_lines = [
-        line for line in expanded_lines if line.strip() and not line.startswith("--")]
+#     cleaned_lines = [
+#         line for line in expanded_lines if line.strip() and not line.startswith("--")]
 
-    return cleaned_lines
+#     return cleaned_lines
 
 
 def generate_rpll(file, expanded_lines):
-    # Sacarle todas las lineas vacias, conformadas por nada '', solo espacios ' ', o comentarios '--'
     expanded_lines = [
         line for line in expanded_lines if line.strip() and not line.startswith("--")]
     

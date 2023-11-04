@@ -42,11 +42,14 @@ def search_pyskell_function_by_name(name):
     return None
 
 def print_time_execution(time_elapsed, message = "Time elapsed: "):
-    if time_elapsed < 1.0:
+    if time_elapsed < 0.001:
+        time_elapsed_ns = time_elapsed * 1000000
+        print(f"{message}{time_elapsed_ns:.4f} ns")
+    elif time_elapsed < 1.0:
         time_elapsed_ms = time_elapsed * 1000
         print(f"{message}{time_elapsed_ms:.4f} ms")
     else:
-        print(f"{message}{time_elapsed:.4f} s")
+        print(f"{message}{time_elapsed:.4f} seconds")
 
 def is_valid_list_or_tuple(s):
     return (s.startswith('[') and s.endswith(']')) or (s.startswith('(') and s.endswith(')'))
