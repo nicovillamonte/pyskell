@@ -3,6 +3,7 @@ from multiprocessing import Process
 from threading import Thread
 import re
 import shlex
+import time
 from pyskell_shared_global import variables, variables_inputs, execution_config
 
 loaded_program = []
@@ -172,6 +173,9 @@ def run_parallel_block(block, concurrency):
             full_block, size = block_prebuild.get("full")
 
             file_name = f"./dist/temp-{id}.rpll"
+            # Create dist if not exist
+            if not os.path.exists("./dist"):
+                os.mkdir("./dist")
             with open(file_name, 'w+') as f:
                 f.writelines([line + '\n' for line in full_block])
             
@@ -221,29 +225,59 @@ def handle_concurrent_block(command):
 def handle_parallel_block(command, concurrency=False):
     global loaded_program
     global pyskell_pc
+    
+    _, arguments = command.split(' ')[0], command.split(' ')[1:]
+    if arguments is not None and len(arguments) > 0:
+        print("Error: parallel or concurrent blocks doesn't accept arguments.")
+        return
 
     prebuild_command_id = obtain_id_from_prebuild_command(command)
-
     line_index = loaded_program.index(command)
 
     parallel_block = []
-
-    new_loaded_program = loaded_program
     for i, line in enumerate(loaded_program[line_index+1:]):
         if obtain_id_from_prebuild_command(line) == prebuild_command_id:
             break
         else:
             parallel_block.append(line)
 
-    loaded_program = new_loaded_program
-
     run_parallel_block(parallel_block, concurrency)
     pyskell_pc += len(parallel_block)
 
+def handle_time_block(command):
+    global loaded_program
+    global pyskell_pc
+    
+    line_index = loaded_program.index(command)
+    command, arguments = command.split(' ')[0], command.split(' ')[1:]
+    prebuild_command_id = obtain_id_from_prebuild_command(command)
+    
+    
+    time_block = []
+    for i, line in enumerate(loaded_program[line_index+1:]):
+        if obtain_id_from_prebuild_command(line) == prebuild_command_id:
+            break
+        else:
+            time_block.append(line)
+    
+    time_start = time.time()
+    if arguments and len(arguments) > 0:
+        print(' '.join(arguments).split('"')[1])
+    else:
+        print("Time block started.")
+    run_pll(program=time_block, principal=False)
+    
+    message = list(filter(None,list(map(lambda x: x.strip(),' '.join(arguments).split('"')))))
+    print_time_execution(time.time() - time_start, message= message[1] if len(message) > 1 is not None else "")
+    
+    pyskell_pc += len(time_block)
 
 def handle_prebuild_command(command):
     regex = re.compile(r"[:;][a-zA-Z]+$")
-    match = regex.search(command)
+    
+    # Separe command of arguments
+    command_without_args = command.split(' ')[0]
+    match = regex.search(command_without_args)
 
     if match:
         if match.group(0).startswith(';'):
@@ -252,6 +286,7 @@ def handle_prebuild_command(command):
         prebuild_commands = {
             ':pl': handle_parallel_block,
             ':co': handle_concurrent_block,
+            ':ti': handle_time_block,
         }
         prebuild_commands.get(match.group(0), lambda: None)(command)
     else:

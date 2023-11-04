@@ -2,7 +2,7 @@ from pyskell_functions import pyskell_exported_functions
 from pyskell_types import PyskellFunction
 from pyskell_shared_global import version
 from colorama import Fore, Back, Style
-from pyskell_shared_global import DEV_MODE
+from pyskell_shared_global import DEV_MODE, options_detail, command_options
 import os
 
 
@@ -10,13 +10,23 @@ def print_if_debug(message, *args):
     if DEV_MODE:
         print(message, *args)
 
+def delete_file(file):
+    # file can be a file or a folder
+    if os.path.exists(file):
+        if os.path.isdir(file):
+            try:
+                os.rmdir(file)
+            except:
+                pass
+        else:
+            os.remove(file)
 
 def print_help():
     print(f"Pyskell v{version}")
     print("Usage: pyskell [file] [options]")
     print("Options:")
-    print("\t--skip-init: Don't print the output of the file build.")
-    print("\t--no-assign: Don't print the assignments.")
+    for option in options_detail:
+        print(f"\t{command_options[option]}: {options_detail[option]}")
 
     print("\nFor help you can use:")
     print("\tpyskell help")
@@ -31,6 +41,12 @@ def search_pyskell_function_by_name(name):
             return f
     return None
 
+def print_time_execution(time_elapsed, message = "Time elapsed: "):
+    if time_elapsed < 1.0:
+        time_elapsed_ms = time_elapsed * 1000
+        print(f"{message}{time_elapsed_ms:.4f} ms")
+    else:
+        print(f"{message}{time_elapsed:.4f} s")
 
 def is_valid_list_or_tuple(s):
     return (s.startswith('[') and s.endswith(']')) or (s.startswith('(') and s.endswith(')'))

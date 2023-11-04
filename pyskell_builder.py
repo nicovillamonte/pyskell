@@ -43,15 +43,23 @@ def group_lines(lines):
     return parse_lines(lines)
 
 
-def to_parallel_rpll_block(block):
-    unique_id = str(abs(hash(uuid.uuid4())))
-    return [f'_${unique_id}$:pl'] + block[1] + [f'_${unique_id}$;pl']
+def build_complete_block(name, id, block):
+    return [f'_${id}$:{name}'] + block + [f'_${id}$;{name}']
 
+def to_parallel_rpll_block(block):
+    unique_name = 'pl'
+    unique_id = str(abs(hash(uuid.uuid4())))
+    return build_complete_block(unique_name, unique_id, block[1])
 
 def to_concurrent_rpll_block(block):
+    unique_name = 'co'
     unique_id = str(abs(hash(uuid.uuid4())))
-    return [f'_${unique_id}$:co'] + block[1] + [f'_${unique_id}$;co']
+    return build_complete_block(unique_name, unique_id, block[1])
 
+def to_time_rpll_block(block):
+    unique_name = 'ti'
+    unique_id = str(abs(hash(uuid.uuid4())))
+    return build_complete_block(unique_name, unique_id, block[1])
 
 def to_for_rpll_block(block):
     command, block = block
@@ -84,6 +92,7 @@ def handle_tuple_block(block):
     options = {
         'parallel': to_parallel_rpll_block,
         'concurrent': to_concurrent_rpll_block,
+        'time': to_time_rpll_block,
         'for': to_for_rpll_block,
     }
     return options.get(block[0].split()[0], lambda: None)(block)
