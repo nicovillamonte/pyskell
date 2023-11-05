@@ -1,0 +1,8 @@
+double 3
+time
+  fibonacci 30
+  fibonacci 29
+time "The time started now." "The time of execution was: "
+  fibonacci 29
+  fibonacci 30
+double 3

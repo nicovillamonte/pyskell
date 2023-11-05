@@ -1,0 +1,10 @@
+double 3
+time "Time started for CONCURRENT" "Time elapsed: "
+  concurrent
+    fibonacci 31
+    fibonacci 30
+time "Time started for PARALLEL" "Time elapsed: "
+  parallel
+    fibonacci 31
+    fibonacci 30
+double 3

@@ -1,0 +1,4 @@
+log "Fibonacci in concurrent:"
+concurrent
+  fibonacci 30
+  fibonacci 29
