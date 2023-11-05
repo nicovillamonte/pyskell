@@ -4,11 +4,11 @@ import sys
 from pyskell_repl import run_repl
 from pyskell_special_commands import clear_screen
 from pyskell_shared_global import DEV_MODE, version, command_options, execution_config
-from pyskell_utils import print_help
+from pyskell_utils import print_help, delete_file
 
 
 def manage_another_flags():
-    if command_options['no_assign'] in sys.argv:
+    if not command_options['print_assign'] in sys.argv:
         execution_config['assignations_print'] = False
 
 
@@ -23,7 +23,7 @@ def main():
 
         file = sys.argv[1]
 
-        without_print_flag = command_options['without_print_flag'] in sys.argv
+        show_build = command_options['show_build'] in sys.argv
 
         manage_another_flags()
 
@@ -32,17 +32,20 @@ def main():
             return
 
         # If file extension is .pll, build it, else run it
+        build_file = None
         if file.split('.')[-1] == 'pll':
-            print("Building file:", file) if not without_print_flag else None
+            print("Building file:", file) if show_build else None
             build_file = pbuilder.build(file=file, print_log=DEV_MODE)
-            print("File builded:", build_file) if not without_print_flag else None
-        else:
-            build_file = file
-
-        input("Press Enter to continue...") if not without_print_flag else None
+            print("File builded:", build_file) if show_build else None
+            input("Press Enter to continue...") if show_build else None
 
         clear_screen()
-        pexecuter.run_pll(build_file)
+        pexecuter.run_pll(build_file if build_file else file)
+        
+        if build_file:
+            # Delete builded file and try to delete dist folder
+            delete_file(build_file)
+            delete_file('./dist')
     else:
         run_repl()
 

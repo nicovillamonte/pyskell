@@ -1,3 +1,5 @@
+-- Run this code with option --print-assigns
+
 aNumber = 3
 double aNumber
 

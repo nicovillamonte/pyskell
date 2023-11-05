@@ -11,7 +11,7 @@
       "program": "pyskell.py",
       "console": "integratedTerminal",
       "justMyCode": true,
-      "args": ["archivo.pll","--skip-init"],
+      "args": ["archivo.pll"],
       "cwd": "${workspaceFolder}"
     }
   ]
