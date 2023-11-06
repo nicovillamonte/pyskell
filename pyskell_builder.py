@@ -222,17 +222,17 @@ def separe_rpll_and_calculable_lines(expanded_lines):
     return rpll_lines, calculable_lines
 
 
-def throw_duplicates(elements):
-    new_elements = []
-    seen = set()
+# def throw_duplicates(elements):
+#     new_elements = []
+#     seen = set()
 
-    for element in elements:
-        name = element["name"]
-        if name not in seen:
-            seen.add(name)
-            new_elements.append(element)
+#     for element in elements:
+#         name = element["name"]
+#         if name not in seen:
+#             seen.add(name)
+#             new_elements.append(element)
 
-    return new_elements
+#     return new_elements
 
 
 def build(file, print_log=False):
@@ -254,13 +254,18 @@ def build(file, print_log=False):
 
     for i in calculable_lines:
         [left_side, _] = i.split('=')
-        variables.append({
+        variables.add({
             "name": left_side.strip(),
             "value": None,
             "hash": f"%{str(abs(hash(f'{left_side.strip()}')))}%"
         })
+        # variables.append({
+        #     "name": left_side.strip(),
+        #     "value": None,
+        #     "hash": f"%{str(abs(hash(f'{left_side.strip()}')))}%"
+        # })
 
-    print_if(print_log, 'variables: ', throw_duplicates(variables))
+    # print_if(print_log, 'variables: ', throw_duplicates(variables))
 
     for i, line in enumerate(expanded_lines):
         for variable in variables:

@@ -4,7 +4,7 @@ from threading import Thread, local
 import re
 import shlex
 import time
-from pyskell_shared_global import variables, variables_inputs, execution_config
+from pyskell_shared_global import variables, variables_inputs, execution_config, PythonVariables
 
 loaded_program = []
 
@@ -77,7 +77,8 @@ def is_pll_function(command):
 
 
 def get_variable(hash):
-    return variables[[variable["hash"] for variable in variables].index(hash)] if hash in [variable["hash"] for variable in variables] else None
+    return variables.get_variable(hash)
+    # return variables[[variable["hash"] for variable in variables].index(hash)] if hash in [variable["hash"] for variable in variables] else None
 
 
 def handle_assignation(command):
