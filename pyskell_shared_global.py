@@ -1,11 +1,15 @@
 import uuid
 import os
+from threading import Semaphore as ThreadSemaphore
+from multiprocessing import Semaphore as ProcessSemaphore
 
 class PythonVariables:
   def __init__(self):
     self.id = abs(hash(uuid.uuid4()))
     self.path = f'dist/variables-{self.id}'
-    self.values = []
+    self.thread_sem = ThreadSemaphore()
+    self.process_sem = ProcessSemaphore()
+    self._variables_cache = None
     
     # Si la carpeta dist no existe, la creamos
     if not os.path.exists('dist'):
@@ -15,64 +19,122 @@ class PythonVariables:
     with open(self.path, 'w') as f:
       f.write('')
   
-  def __del__(self):
-    os.remove(self.path)
+  # def __del__(self):
+  #   if os.path.exists(self.path):  # Verificar si el archivo existe antes de intentar eliminarlo
+  #       os.remove(self.path)
+  
+  def start_action(self):
+    self.thread_sem.acquire()
+    self.process_sem.acquire()
+  
+  def end_action(self):
+    self.thread_sem.release()
+    self.process_sem.release()
     
   def set_id(self, id):
+    os.remove(self.path)
     self.id = id
     self.path = f'dist/variables-{self.id}'
-    # Update the values through file
-    self.values = []
-    with open(self.path, 'r') as f:
-      for line in f:
-        value, name, hash = line.split('=')
-        self.values.append({
-            "name": name,
-            "value": value,
-            "hash": hash.replace('\n', '')
-        })
     
-  def add(self, value):
-    # value is { "name": left_side.strip(), "value": None, "hash": f"%{str(abs(hash(f'{left_side.strip()}')))}%" }
-    with open(self.path, 'a') as f:
-      f.write(f'{value["name"]}={value["value"]}={value["hash"]}\n')
-      self.values.append(value)
+  def add(self, value): # Only used in the builder
+    self.start_action()
+    exists = False
+    with open(self.path, 'r+') as f:  # Open the file for reading and writing.
+        lines = f.readlines()  # Read all the lines.
+        for line in lines:
+            name, _, _ = line.split('=')
+            if name == value["name"]:
+                exists = True
+                break
+        if not exists:
+            f.seek(0, os.SEEK_END)  # Move the pointer to the end of the file.
+            f.write(f'{value["name"]}={value["value"]}={value["hash"]}\n')  # Write the new entry.
+    self.end_action()
+  
+  def get_variables(self):
+    self.start_action()
+    try:
+        variables = []
+        with open(self.path, 'r') as f:
+            for line in f:
+                name, value, hash = line.strip().split('=')
+                variables.append({
+                    "name": name,
+                    "value": value,
+                    "hash": hash
+                })
+    except Exception as e:
+        # Aquí deberías manejar el error, como logearlo o relanzar la excepción.
+        raise e
+    finally:
+        self.end_action()
+    return variables
+
+  # def get_variables(self):
+  #   self.start_action()
+  #   variables = []
+  #   with open(self.path, 'r') as f:
+  #     for line in f:
+  #       name, value, hash = line.split('=')
+  #       variables.append({
+  #         "name": name,
+  #         "value": value,
+  #         "hash": hash.replace('\n', '')
+  #       })
+  #   self.end_action()
+  #   return variables
   
   def get_variable(self, hash):
-    for variable in self.values:
-      if variable["hash"] == hash:
-        return variable
-    return None
+    self.start_action()
+    output = None
+    with open(self.path, 'r') as f:
+      for line in f:
+        name, value, hash_ = line.split('=')
+        if hash == hash_.replace('\n', ''):
+          output = {
+            "name": name,
+            "value": value,
+            "hash": hash_.replace('\n', '')
+          }
+          break
+    self.end_action()
+    return output
   
   def update(self, value):
-    with open(self.path, 'r') as f:
+    self.start_action()
+    with open(self.path, 'r+') as f:
       lines = f.readlines()
-    with open(self.path, 'w') as f:
+      f.seek(0)
+      f.truncate()
+      updated = False
       for line in lines:
-        if line.endswith(value["hash"] + '\n'):
+        name, _, hash_ = line.split('=')
+        hash = hash_.replace('\n', '')
+        if hash == value["hash"]:
           f.write(f'{value["name"]}={value["value"]}={value["hash"]}\n')
-          # Change the value in the values list
-          for i, variable in enumerate(self.values):
-            if variable["hash"] == value["hash"]:
-              self.values[i] = value
+          updated = True
         else:
-          f.write(line)
+          f.write(line)  # Asegúrate de agregar '\n' para mantener la estructura de líneas
+    self.end_action()
   
-  # Define the __iter__ method
   def __iter__(self):
-    self._index = 0  # Initialize a counter for iteration
-    return self  # Return the iterator object
+    if self._variables_cache is None:
+      self._variables_cache = self.get_variables()  # Solo se llama una vez y se almacena en caché.
+      self._index = 0
+    return self
 
-  # Define the __next__ method
   def __next__(self):
-    if self._index < len(self.values):
-      result = self.values[self._index]
+    if self._index < len(self._variables_cache):
+      result = self._variables_cache[self._index]
       self._index += 1
       return result
-    raise StopIteration  # If there are no more items, raise the StopIteration exception
+    else:
+      self._variables_cache = None  # Resetear el caché después de la iteración
+      raise StopIteration
   
   def __len__(self):
-    return len(self.values)
+    vars = self.get_variables()
+    return len(vars)
     
 variables = PythonVariables()
 # variables = []

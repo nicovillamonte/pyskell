@@ -246,10 +246,10 @@ def build(file, print_log=False):
 
     expanded_lines = post_process_expanded_lines(expanded_lines)
 
-    rpll_lines, calculable_lines = separe_rpll_and_calculable_lines(
+    _, calculable_lines = separe_rpll_and_calculable_lines(
         expanded_lines)
 
-    print_if(print_log, 'rpll_lines: ', rpll_lines)
+    # print_if(print_log, 'rpll_lines: ', rpll_lines)
     print_if(print_log, 'calculable_lines: ', calculable_lines)
 
     for i in calculable_lines:
