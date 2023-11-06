@@ -186,13 +186,55 @@ def get_block_from_prebuild_command(id):
         "full": (full_block, len(full_block)),
     } if block_started and end_match else None
 
+def exists_wait_block(block):
+    for line in block:
+        if line.endswith(':wa'):
+            return True
+    return False
+
+def have_more_than_one_wait_block(block):
+    count = 0
+    for line in block:
+        if line.endswith(':wa'):
+            count += 1
+    return count > 1
+
+def line_is_wait_block(line):
+    return line.endswith(':wa')
 
 def run_parallel_block(block, concurrency):
     code = []
     proccesses_to_wait = []
     files_to_delete = []
     i = 0
+    
+    # TODO: Aca hay que separar los comandos de los bloques WAIT
+    clean_block, to_wait_block, wait_block = [], [], []
+    block_wait_found = False
+    index = 0
+    if exists_wait_block(block):
+        
+        
+        while index < len(block):
+            if block[index].endswith(':wa') and not block_wait_found:
+                # Get block inner
+                to_wait_block, _ = get_block_from_prebuild_command(obtain_id_from_prebuild_command(block[index])).get("inner")
+                
+                clean_block.append("-- WAIT BLOCK --")
+                wait_block, wait_block_size = get_block_from_prebuild_command(obtain_id_from_prebuild_command(block[index])).get("inner")
+                block_wait_found = True
+                index += wait_block_size + 1
+            else:
+                # if not block_wait_found:
+                #     to_wait_block.append(block[index])
+                clean_block.append(block[index])
+            index += 1
+        block = clean_block
+    del clean_block, wait_block, index
+    # TODO: Tengo el bloque block para usar y el bloque to_wait_block que tiene los comandos que se ejecutan antes del bloque WAIT
 
+    wait_block_found = False
+    to_wait_block_processes = []
     while i < len(block):
         command = block[i]
         if command.startswith('_$'):
@@ -207,8 +249,12 @@ def run_parallel_block(block, concurrency):
             with open(file_name, 'w+') as f:
                 f.writelines([line + '\n' for line in full_block])
             
-            block_proccess = Process(target=run_pll, args=(file_name, None,)) if not concurrency else Thread(target=run_pll, args=(file_name, None,))
+            block_proccess = Process(target=run_pll, args=(file_name, None, False)) if not concurrency else Thread(target=run_pll, args=(file_name, None, False))
 
+            # Agrego el proceso a la lista de procesos a esperar por el wait
+            if exists_wait_block(block) and not wait_block_found:
+                to_wait_block_processes.append(block_proccess)
+            
             files_to_delete.append(file_name)
 
             proccesses_to_wait.append(block_proccess)
@@ -217,26 +263,55 @@ def run_parallel_block(block, concurrency):
             i += size
         else:
             code.append(command)
+            wait_block_found = True if command == '-- WAIT BLOCK --' else False
             i += 1
     
     command_proccesses = []
-    if concurrency:
-        command_proccesses = [
-            Thread(target=run_command, args=(command,)) for command in code if not command.startswith('--')
-        ]
-    else:
-        command_proccesses = [
-            Process(target=run_command, args=(command,)) for command in code if not command.startswith('--')
-        ]
+    wait_block_found = False
+    def isWaitBlock(_command):
+        return _command == '-- WAIT BLOCK --'
+    def existWaitBlock(_block):
+        return '-- WAIT BLOCK --' in _block
+    # if concurrency:
+    for line in code:
+        command_thread = Thread(target=run_command, args=(line,)) if concurrency else Process(target=run_command, args=(line,))
+        command_proccesses.append(command_thread) if not line.startswith('--') and not isWaitBlock(line) else None
+        if isWaitBlock(line):
+            wait_block_found = True
+        to_wait_block_processes.append(command_thread) if not wait_block_found else None
+            
+            
+                
+        # command_proccesses = [
+        #     Thread(target=run_command, args=(command,)) for command in code if not command.startswith('--')
+        # ]
+    # else:
+    #     command_proccesses = [
+    #         Process(target=run_command, args=(command,)) for command in code if not command.startswith('--')
+    #     ]
 
     for proccess in command_proccesses:
         proccess.start()
+    
+    ## TODO: -----------------------------
+    if existWaitBlock(block):
+        for proccess in to_wait_block_processes:
+            proccess.join()
+            
+        ## RUN WAIT BLOCK wih run_pll in a new thread
+        thread = Thread(target=run_pll, args=(None, to_wait_block, False,))
+        thread.start()
+        thread.join()
+        
+    ## TODO: -----------------------------
 
     for proccess in command_proccesses:
         proccess.join()
 
     for proccess in proccesses_to_wait:
         proccess.join()
+        
+    
 
     for file in files_to_delete:
         os.remove(file)
@@ -301,6 +376,9 @@ def handle_time_block(command):
     increment_pyskell_pc(len(time_block))
     # pyskell_pc += len(time_block)
 
+def handle_wait_block(command):
+    pass
+
 def handle_prebuild_command(command):
     regex = re.compile(r"[:;][a-zA-Z]+$")
     
@@ -316,6 +394,7 @@ def handle_prebuild_command(command):
             ':pl': handle_parallel_block,
             ':co': handle_concurrent_block,
             ':ti': handle_time_block,
+            ':wa': handle_wait_block,
         }
         prebuild_commands.get(match.group(0), lambda: None)(command)
     else:
@@ -430,6 +509,8 @@ def run_pll(file=None, program=None, principal=True):
     if program is None and file is not None and principal:
         loaded_program = load_program(file)
         program = loaded_program
+    elif program is None and file is not None and not principal:
+        program = load_program(file)
     elif program is None and file is None:
         return "Error."
     

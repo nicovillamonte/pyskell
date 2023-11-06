@@ -79,3 +79,7 @@ sleep = PyskellFunction('sleep', sleep_pyskell, type=(int, int))
 
 # Exported functions
 pyskell_exported_functions = [sleep, log, factorial, double, sum, upperCase, lowerCase, length, sumOf, isStrEq, helloWorld, fibonacci]
+
+# To Do Functions
+# https://zvon.org/other/haskell/Outputprelude/index.html
+
