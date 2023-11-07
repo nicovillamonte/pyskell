@@ -151,8 +151,36 @@ def tail_pyskell(arr):
     return arr[1:]
 tail = PyskellFunction('tail', tail_pyskell, type=(list,list))
 
+# Función signum (Number -> Number)
+def signum_pyskell(n):
+    n= number(n)
+    if n > 0:
+        return 1
+    elif n < 0:
+        return -1
+    else:
+        return 0
+signum = PyskellFunction('signum', signum_pyskell, type=(number,number))
 
-lean_functions = [compare_, cos, sin, div, elem, exp, head, tail]
+
+# Función maximun(List -> Number)
+def maximun_pyskell(arr):
+    if len(arr) == 1:
+        return arr[0]
+    else:
+        return arr[0] if arr[0] > maximun_pyskell(arr[1:]) else maximun_pyskell(arr[1:])
+maximun = PyskellFunction('maximun', maximun_pyskell, type=(list,number))
+
+# Función minimun(List -> Number)
+def minimun_pyskell(arr):
+    if len(arr) == 1:
+        return arr[0]
+    else:
+        return arr[0] if arr[0] < minimun_pyskell(arr[1:]) else minimun_pyskell(arr[1:])
+minimun = PyskellFunction('minimun', minimun_pyskell, type=(list,number))
+
+
+lean_functions = [compare_, cos, sin, div, elem, exp, head, tail, signum, maximun, minimun]
 nicor_functions = []
 nicov_functions = [sleep, log, factorial, double, sum, upperCase, lowerCase, length, sumOf, 
                    isStrEq, helloWorld, fibonacci, _abs]
