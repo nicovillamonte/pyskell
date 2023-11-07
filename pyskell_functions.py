@@ -85,8 +85,48 @@ def abs_pyskell(n):
 _abs = PyskellFunction('abs', abs_pyskell, type=(number,number))
 
 
+
+# Función even (Number -> Bool)
+def even_pyskell(n):
+    n = number(n)
+    return n % 2 == 0
+even = PyskellFunction('even', even_pyskell, type=(number, bool))
+
+# Funcion odd (Number -> Bool)
+def odd_pyskell(n):
+    n = number(n)
+    return n % 2 != 0
+odd = PyskellFunction('odd', odd_pyskell, type=(number, bool))
+
+# Función negate (Bool -> Bool)
+def negate_pyskell(n):
+    n = number(n)
+    if n > 0:
+        return n * -1
+    else:
+        return n
+negate = PyskellFunction('negate', negate_pyskell, type=(number, number))
+
+
+
+# Función all (String -> List -> Bool)
+def all_pyskellf(n):
+    func = globals().get(n)
+    if func is not None and callable(func):
+        def inner_all_pyskell(arr):
+            if len(arr) == 0:
+                return True
+            else:
+                return func(arr[0]) and inner_all_pyskell(arr[1:])
+        return PyskellFunction(func=inner_all_pyskell, type=(list, bool))
+    else:
+        raise ValueError("Function not found")
+
+_all = PyskellFunction('_all', all_pyskellf, type=(str, PyskellFunction(type=(list, bool))))
+
+
 lean_functions = []
-nicor_functions = []
+nicor_functions = [even, odd, negate, _all]
 nicov_functions = [sleep, log, factorial, double, sum, upperCase, lowerCase, length, sumOf, 
                    isStrEq, helloWorld, fibonacci, _abs]
 
