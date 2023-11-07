@@ -134,11 +134,25 @@ def elem_pyskell(n):
     return PyskellFunction(func=inner_elem, type=(number, bool))
 elem = PyskellFunction('elem', elem_pyskell, type=(number, PyskellFunction(type=(list, bool))))    
 
+# Función exp (Number -> Number)
+def exp_pyskell(n):
+    n = number(n)
+    import math
+    return math.exp(n)
+exp = PyskellFunction('exp', exp_pyskell, type=(number, number))
+
+# Función head (List -> Number)
+def head_pyskell(arr):
+    return arr[0]
+head = PyskellFunction('head', head_pyskell, type=(list,str))
+
+# Función tail (List -> List)
+def tail_pyskell(arr):
+    return arr[1:]
+tail = PyskellFunction('tail', tail_pyskell, type=(list,list))
 
 
-
-
-lean_functions = [compare_, cos, sin, div, elem]
+lean_functions = [compare_, cos, sin, div, elem, exp, head, tail]
 nicor_functions = []
 nicov_functions = [sleep, log, factorial, double, sum, upperCase, lowerCase, length, sumOf, 
                    isStrEq, helloWorld, fibonacci, _abs]
