@@ -179,8 +179,32 @@ def minimun_pyskell(arr):
         return arr[0] if arr[0] < minimun_pyskell(arr[1:]) else minimun_pyskell(arr[1:])
 minimun = PyskellFunction('minimun', minimun_pyskell, type=(list,number))
 
+# Función not (Bool -> Bool)
+def not_pyskell(b):
+    if b:
+        return False
+    else: 
+        return True
+not_ = PyskellFunction('not_', not_pyskell, type=(bool,bool))
 
-lean_functions = [compare_, cos, sin, div, elem, exp, head, tail, signum, maximun, minimun]
+# Función or (List -> Bool)
+def or_pyskell(arr):
+    if len(arr) == 0:
+        return False
+    else:
+        return arr[0] or or_pyskell(arr[1:])
+or_ = PyskellFunction('or_', or_pyskell, type=(list,bool))
+
+
+# Función and (List -> Bool)
+def and_pyskell(arr):
+    if len(arr) == 0:
+        return True
+    else:
+        return arr[0] and and_pyskell(arr[1:])
+and_ = PyskellFunction('and_', and_pyskell, type=(list,bool))
+
+lean_functions = [compare_, cos, sin, div, elem, exp, head, tail, signum, maximun, minimun, not_, or_, and_]
 nicor_functions = []
 nicov_functions = [sleep, log, factorial, double, sum, upperCase, lowerCase, length, sumOf, 
                    isStrEq, helloWorld, fibonacci, _abs]
