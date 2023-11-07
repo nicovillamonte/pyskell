@@ -1,6 +1,6 @@
 variables = []
 variables_inputs = []
-version = "1.0.0"
+version = "1.1.0"
 DEV_MODE = False
 
 command_options = {

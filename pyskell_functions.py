@@ -76,6 +76,20 @@ def sleep_pyskell(n):
     return n
 sleep = PyskellFunction('sleep', sleep_pyskell, type=(int, int))
 
+def abs_pyskell(n):
+    n = number(n)
+    if n < 0:
+        return n * (-1)
+    else:
+        return n
+_abs = PyskellFunction('abs', abs_pyskell, type=(number,number))
 
+
+lean_functions = []
+nicor_functions = []
+nicov_functions = [sleep, log, factorial, double, sum, upperCase, lowerCase, length, sumOf, 
+                   isStrEq, helloWorld, fibonacci, _abs]
+
+functions = nicov_functions + lean_functions + nicor_functions
 # Exported functions
-pyskell_exported_functions = [sleep, log, factorial, double, sum, upperCase, lowerCase, length, sumOf, isStrEq, helloWorld, fibonacci]
+pyskell_exported_functions = functions
