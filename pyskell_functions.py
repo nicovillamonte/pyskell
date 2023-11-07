@@ -181,11 +181,9 @@ minimun = PyskellFunction('minimun', minimun_pyskell, type=(list,number))
 
 # Función not (Bool -> Bool)
 def not_pyskell(b):
-    if b:
-        return False
-    else: 
-        return True
-not_ = PyskellFunction('not_', not_pyskell, type=(bool,bool))
+    b= bool(b)
+    return not b
+not_ = PyskellFunction('not', not_pyskell, type=(bool,bool))
 
 # Función or (List -> Bool)
 def or_pyskell(arr):
@@ -193,8 +191,7 @@ def or_pyskell(arr):
         return False
     else:
         return arr[0] or or_pyskell(arr[1:])
-or_ = PyskellFunction('or_', or_pyskell, type=(list,bool))
-
+or_ = PyskellFunction('or', or_pyskell, type=(list,bool))
 
 # Función and (List -> Bool)
 def and_pyskell(arr):
@@ -202,7 +199,7 @@ def and_pyskell(arr):
         return True
     else:
         return arr[0] and and_pyskell(arr[1:])
-and_ = PyskellFunction('and_', and_pyskell, type=(list,bool))
+and_ = PyskellFunction('and', and_pyskell, type=(list,bool))
 
 lean_functions = [compare_, cos, sin, div, elem, exp, head, tail, signum, maximun, minimun, not_, or_, and_]
 nicor_functions = []
