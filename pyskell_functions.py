@@ -109,20 +109,16 @@ negate = PyskellFunction('negate', negate_pyskell, type=(number, number))
 
 
 
-# Función all (String -> List -> Bool)
+# Función all (Func -> List -> Bool)
 def all_pyskellf(n):
     func = globals().get(n)
-    if func is not None and callable(func):
-        def inner_all_pyskell(arr):
-            if len(arr) == 0:
-                return True
-            else:
-                return func(arr[0]) and inner_all_pyskell(arr[1:])
-        return PyskellFunction(func=inner_all_pyskell, type=(list, bool))
-    else:
-        raise ValueError("Function not found")
-
-_all = PyskellFunction('_all', all_pyskellf, type=(str, PyskellFunction(type=(list, bool))))
+    def inner_all_pyskell(arr):
+                if len(arr) == 0:
+                    return True
+                else:
+                    return func(arr[0]) and inner_all_pyskell(arr[1:])
+    return PyskellFunction(func=inner_all_pyskell, type=(list, bool))
+_all = PyskellFunction('all', all_pyskellf, type=(str, PyskellFunction(type=(list, bool))))
 
 
 lean_functions = []
