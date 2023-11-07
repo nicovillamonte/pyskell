@@ -85,7 +85,60 @@ def abs_pyskell(n):
 _abs = PyskellFunction('abs', abs_pyskell, type=(number,number))
 
 
-lean_functions = []
+
+# Función compare (Number -> Number -> String)
+def compare(n):
+    def inner_compare(m):
+        if n > m:
+            return "GT"
+        elif n < m:
+            return "LT"
+        else:
+            return "EQ"
+    return PyskellFunction(func=inner_compare, type=(number, str))
+compare_ = PyskellFunction('compare', compare, type= (number, PyskellFunction(type =(number, str))))
+
+
+# Función cos (Number -> Number)
+def cos_pyskell(n):
+    n = number(n)
+    import math
+    return math.cos(n)
+cos = PyskellFunction('cos', cos_pyskell, type=(number, number))
+
+# Función sin (Number -> Number)
+def sin_pyskell(n):
+    n = number(n)
+    import math
+    return math.sin(n)
+sin = PyskellFunction('sin', sin_pyskell, type=(number, number))
+
+# Función div ( Number -> Number)
+def div_pyskell(n):
+    n = number(n)
+    def inner_div(m):
+        m = number(m)
+        return number(n/m)
+    return PyskellFunction(func=inner_div, type=(number, number))
+div = PyskellFunction('div', div_pyskell, type=(number, PyskellFunction(type=(number, number))))
+
+
+# Función elem (Number -> List -> Bool)
+def elem_pyskell(n):
+    n = number(n)
+    def inner_elem(arr):
+        if len(arr) == 0:
+            return False
+        else:
+            return arr[0] == n or inner_elem(arr[1:])
+    return PyskellFunction(func=inner_elem, type=(number, bool))
+elem = PyskellFunction('elem', elem_pyskell, type=(number, PyskellFunction(type=(list, bool))))    
+
+
+
+
+
+lean_functions = [compare_, cos, sin, div, elem]
 nicor_functions = []
 nicov_functions = [sleep, log, factorial, double, sum, upperCase, lowerCase, length, sumOf, 
                    isStrEq, helloWorld, fibonacci, _abs]
