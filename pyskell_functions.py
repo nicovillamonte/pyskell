@@ -164,24 +164,24 @@ signum = PyskellFunction('signum', signum_pyskell, type=(number,number))
 
 
 # Función maximun(List -> Number)
-def maximun_pyskell(arr):
+def maximum_pyskell(arr):
     if len(arr) == 1:
         return arr[0]
     else:
-        return arr[0] if arr[0] > maximun_pyskell(arr[1:]) else maximun_pyskell(arr[1:])
-maximun = PyskellFunction('maximun', maximun_pyskell, type=(list,number))
+        return arr[0] if arr[0] > maximum_pyskell(arr[1:]) else maximum_pyskell(arr[1:])
+maximum = PyskellFunction('maximum', maximum_pyskell, type=(list,number))
 
 # Función minimun(List -> Number)
-def minimun_pyskell(arr):
+def minimum_pyskell(arr):
     if len(arr) == 1:
         return arr[0]
     else:
-        return arr[0] if arr[0] < minimun_pyskell(arr[1:]) else minimun_pyskell(arr[1:])
-minimun = PyskellFunction('minimun', minimun_pyskell, type=(list,number))
+        return arr[0] if arr[0] < minimum_pyskell(arr[1:]) else minimum_pyskell(arr[1:])
+minimum = PyskellFunction('minimum', minimum_pyskell, type=(list,number))
 
 # Función not (Bool -> Bool)
 def not_pyskell(b):
-    b= bool(b)
+    b= bool(eval(b))
     return not b
 not_ = PyskellFunction('not', not_pyskell, type=(bool,bool))
 
@@ -201,7 +201,7 @@ def and_pyskell(arr):
         return arr[0] and and_pyskell(arr[1:])
 and_ = PyskellFunction('and', and_pyskell, type=(list,bool))
 
-lean_functions = [compare_, cos, sin, div, elem, exp, head, tail, signum, maximun, minimun, not_, or_, and_]
+lean_functions = [compare_, cos, sin, div, elem, exp, head, tail, signum, maximum, minimum, not_, or_, and_]
 nicor_functions = []
 nicov_functions = [sleep, log, factorial, double, sum, upperCase, lowerCase, length, sumOf, 
                    isStrEq, helloWorld, fibonacci, _abs]
