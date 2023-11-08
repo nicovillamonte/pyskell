@@ -101,28 +101,54 @@ odd = PyskellFunction('odd', odd_pyskell, type=(number, bool))
 # Función negate (Bool -> Bool)
 def negate_pyskell(n):
     n = number(n)
-    if n > 0:
-        return n * -1
-    else:
-        return n
+    return n * -1
 negate = PyskellFunction('negate', negate_pyskell, type=(number, number))
 
 
+#Función ceiling (Number -> Number)
+def ceiling_pyskell(n):
+    n = number(n)
+    if n == number(int(n)) or n < 0:
+        return number(int(n))
+    else:
+        return number(int(n)) + 1
+ceiling = PyskellFunction('ceiling', ceiling_pyskell, type=(number, number))
 
-# Función all (Func -> List -> Bool)
-def all_pyskellf(n):
-    func = globals().get(n)
-    def inner_all_pyskell(arr):
-                if len(arr) == 0:
-                    return True
-                else:
-                    return func(arr[0]) and inner_all_pyskell(arr[1:])
-    return PyskellFunction(func=inner_all_pyskell, type=(list, bool))
-_all = PyskellFunction('all', all_pyskellf, type=(str, PyskellFunction(type=(list, bool))))
+
+#Función concat (List -> List) 
+def concat_pyskell(list_of_lists):
+    result = []
+    for sublist in list_of_lists:
+        result.extend(sublist)
+    return result
+concat = PyskellFunction('concat', concat_pyskell, type=(list, list))
+
+
+# Función divmod (Number -> Number -> Tuple)
+def divmod_pyskell(n):
+    n = number(n)
+    def inner_divmod_pyskell(m):
+        m = number(m)
+        return (n // m, n % m)
+    return PyskellFunction(func=inner_divmod_pyskell, type=(number, PyskellFunction(type=(number, tuple))))
+_divMod = PyskellFunction('divMod', divmod_pyskell, type=(number, PyskellFunction(type=(number, tuple))))
+
+# Función drop (Number -> List -> List)
+def drop_pyskell(n):
+    n = int(n)
+    def inner_drop_pyskell(arr):
+        if n <= 0:
+            return arr
+        else:
+            return arr[n:]
+    return PyskellFunction(func=inner_drop_pyskell, type=(number, PyskellFunction(type=(list, list))))
+drop = PyskellFunction('drop', drop_pyskell, type=(number, PyskellFunction(type=(list, list))))
+
+
 
 
 lean_functions = []
-nicor_functions = [even, odd, negate, _all]
+nicor_functions = [even, odd, negate, ceiling, drop,concat, _divMod]
 nicov_functions = [sleep, log, factorial, double, sum, upperCase, lowerCase, length, sumOf, 
                    isStrEq, helloWorld, fibonacci, _abs]
 
