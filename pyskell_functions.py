@@ -145,10 +145,61 @@ def drop_pyskell(n):
 drop = PyskellFunction('drop', drop_pyskell, type=(number, PyskellFunction(type=(list, list))))
 
 
+# Función all (Func -> List -> Bool)
+# def all_pyskellf(n):
+#     #func = globals().get(n)
+#     func = PyskellFunction(func=n, type=(None, None))
+#     def inner_all_pyskell(arr):
+#                 if len(arr) == 0:
+#                     return True
+#                 else:
+#                     return func(arr[0]) and inner_all_pyskell(arr[1:])
+#     return PyskellFunction(func=inner_all_pyskell, type=(list, bool))
+# _all = PyskellFunction('all', all_pyskellf, type=(str, PyskellFunction(type=(list, bool))))
+
+
+# Función all (Func -> List -> Bool)
+# def all_pyskellf(n):
+#     func = eval(n)
+#     print(func)
+#     def inner_all_pyskell(arr):
+#         if len(arr) == 0:
+#             return True
+#         else:
+#             return func(arr[0]) and inner_all_pyskell(arr[1:])
+#     return PyskellFunction(func=inner_all_pyskell, type=(list, bool))
+# _all = PyskellFunction('all', all_pyskellf, type=(str, PyskellFunction(type=(None, PyskellFunction(type=(list, bool))))))
+
+#funciona 
+# Función all (Func -> List -> Bool)
+# def all_pyskellf(func):
+#     def inner_all_pyskell(arr):
+#         if len(arr) == 0:
+#             return True
+#         else:
+#             return eval(func)(arr[0]) and inner_all_pyskell(arr[1:])
+#     return PyskellFunction(func=inner_all_pyskell, type=(PyskellFunction(type=(None, bool)), PyskellFunction(type=(list, bool))))
+# _all = PyskellFunction('all', all_pyskellf, type=(PyskellFunction(type=(None, bool)), PyskellFunction(type=(list, bool))))
+
+
+#Función all (Func -> List -> Bool)
+def all_pyskellf(n):
+    def inner_all_pyskell(arr):
+        if len(arr) == 0:
+            return True
+        else:
+            # condicion para saber si es una funcion o un operador
+            if any(char.isalpha() for char in n):
+                result = eval(n)(arr[0])
+            else:
+                result =  eval(f"{arr[0]} {n}")
+        return result and inner_all_pyskell(arr[1:])
+    return PyskellFunction(func=inner_all_pyskell, type=(PyskellFunction(type=(None, bool)), PyskellFunction(type=(list, bool))))
+_all = PyskellFunction('all', all_pyskellf, type=(PyskellFunction(type=(None, bool)), PyskellFunction(type=(list, bool))))
 
 
 lean_functions = []
-nicor_functions = [even, odd, negate, ceiling, drop,concat, _divMod]
+nicor_functions = [even, odd, negate, ceiling, drop,concat, _divMod,_all]
 nicov_functions = [sleep, log, factorial, double, sum, upperCase, lowerCase, length, sumOf, 
                    isStrEq, helloWorld, fibonacci, _abs]
 
