@@ -521,6 +521,8 @@ def run_pll(file=None, program=None, principal=True, main_variables_hash=None):
         program = loaded_program
     elif program is None and file is not None and not principal:
         program = load_program(file)
+        if loaded_program == []:
+            loaded_program = program
     elif program is None and file is None:
         return "Error."
     

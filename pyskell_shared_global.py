@@ -20,7 +20,8 @@ class PythonVariables:
       f.write('')
   
   # def __del__(self):
-  #   if os.path.exists(self.path):  # Verificar si el archivo existe antes de intentar eliminarlo
+  #   # Verificar si el archivo existe antes de intentar eliminarlo
+  #   if os.path.exists(self.path):
   #       os.remove(self.path)
   
   def start_action(self):
@@ -32,7 +33,8 @@ class PythonVariables:
     self.process_sem.release()
     
   def set_id(self, id):
-    os.remove(self.path)
+    if os.path.exists(self.path):
+      os.remove(self.path)
     self.id = id
     self.path = f'dist/variables-{self.id}'
     
