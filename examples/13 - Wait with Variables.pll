@@ -1,0 +1,7 @@
+_v1 = double 2
+parallel
+  _v1 = fibonacci 31
+  wait
+    -- Log is faster than fibonacci
+    log _v1
+  fibonacci 30

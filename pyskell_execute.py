@@ -4,7 +4,7 @@ from threading import Thread, local
 import re
 import shlex
 import time
-from pyskell_shared_global import variables, variables_inputs, execution_config
+from pyskell_shared_global import variables, variables_inputs, execution_config, PythonVariables
 
 loaded_program = []
 
@@ -77,7 +77,8 @@ def is_pll_function(command):
 
 
 def get_variable(hash):
-    return variables[[variable["hash"] for variable in variables].index(hash)] if hash in [variable["hash"] for variable in variables] else None
+    return variables.get_variable(hash)
+    # return variables[[variable["hash"] for variable in variables].index(hash)] if hash in [variable["hash"] for variable in variables] else None
 
 
 def handle_assignation(command):
@@ -90,6 +91,8 @@ def handle_assignation(command):
 
     variable_to_assign["value"] = variable_value
     name = variable_to_assign["name"]
+    
+    variables.update(variable_to_assign)
 
     print_if(execution_config['assignations_print'], f"{name} :: {type(variable_value).__name__} = {variable_value}")
 
@@ -110,7 +113,7 @@ def replace_variables_in_command(command):
 
 
 def evaluate_arithmetic_expressions(command):
-    command, _ = command
+    # command, _ = command
     command_split = command.split(' ')
     command_split[0], command_split[1] = command_split[0], ' '.join(
         command_split[1:])
@@ -186,13 +189,55 @@ def get_block_from_prebuild_command(id):
         "full": (full_block, len(full_block)),
     } if block_started and end_match else None
 
+def exists_wait_block(block):
+    for line in block:
+        if line.endswith(':wa'):
+            return True
+    return False
+
+def have_more_than_one_wait_block(block):
+    count = 0
+    for line in block:
+        if line.endswith(':wa'):
+            count += 1
+    return count > 1
+
+def line_is_wait_block(line):
+    return line.endswith(':wa')
 
 def run_parallel_block(block, concurrency):
     code = []
     proccesses_to_wait = []
     files_to_delete = []
     i = 0
+    
+    # TODO: Aca hay que separar los comandos de los bloques WAIT
+    clean_block, to_wait_block, wait_block = [], [], []
+    block_wait_found = False
+    index = 0
+    if exists_wait_block(block):
+        
+        
+        while index < len(block):
+            if block[index].endswith(':wa') and not block_wait_found:
+                # Get block inner
+                to_wait_block, _ = get_block_from_prebuild_command(obtain_id_from_prebuild_command(block[index])).get("inner")
+                
+                clean_block.append("-- WAIT BLOCK --")
+                wait_block, wait_block_size = get_block_from_prebuild_command(obtain_id_from_prebuild_command(block[index])).get("inner")
+                block_wait_found = True
+                index += wait_block_size + 1
+            else:
+                # if not block_wait_found:
+                #     to_wait_block.append(block[index])
+                clean_block.append(block[index])
+            index += 1
+        block = clean_block
+    del clean_block, wait_block, index
+    # TODO: Tengo el bloque block para usar y el bloque to_wait_block que tiene los comandos que se ejecutan antes del bloque WAIT
 
+    wait_block_found = False
+    to_wait_block_processes = []
     while i < len(block):
         command = block[i]
         if command.startswith('_$'):
@@ -207,8 +252,13 @@ def run_parallel_block(block, concurrency):
             with open(file_name, 'w+') as f:
                 f.writelines([line + '\n' for line in full_block])
             
-            block_proccess = Process(target=run_pll, args=(file_name, None,)) if not concurrency else Thread(target=run_pll, args=(file_name, None,))
+            args = (file_name, None, False, variables.id)
+            block_proccess = Process(target=run_pll, args=args) if not concurrency else Thread(target=run_pll, args=args)
 
+            # Agrego el proceso a la lista de procesos a esperar por el wait
+            if exists_wait_block(block) and not wait_block_found:
+                to_wait_block_processes.append(block_proccess)
+            
             files_to_delete.append(file_name)
 
             proccesses_to_wait.append(block_proccess)
@@ -217,26 +267,57 @@ def run_parallel_block(block, concurrency):
             i += size
         else:
             code.append(command)
+            if command == '-- WAIT BLOCK --':
+                wait_block_found = True
             i += 1
     
     command_proccesses = []
-    if concurrency:
-        command_proccesses = [
-            Thread(target=run_command, args=(command,)) for command in code if not command.startswith('--')
-        ]
-    else:
-        command_proccesses = [
-            Process(target=run_command, args=(command,)) for command in code if not command.startswith('--')
-        ]
+    wait_block_found = False
+    def isWaitBlock(_command):
+        return _command == '-- WAIT BLOCK --'
+    def existWaitBlock(_block):
+        return '-- WAIT BLOCK --' in _block
+    # if concurrency:
+    for line in code:
+        args = (line, False, variables.id,)
+        command_thread = Thread(target=run_command, args=args) if concurrency else Process(target=run_command, args=args)
+        command_proccesses.append(command_thread) if not line.startswith('--') and not isWaitBlock(line) else None
+        if isWaitBlock(line):
+            wait_block_found = True
+        to_wait_block_processes.append(command_thread) if not wait_block_found else None
+            
+            
+                
+        # command_proccesses = [
+        #     Thread(target=run_command, args=(command,)) for command in code if not command.startswith('--')
+        # ]
+    # else:
+    #     command_proccesses = [
+    #         Process(target=run_command, args=(command,)) for command in code if not command.startswith('--')
+    #     ]
 
     for proccess in command_proccesses:
         proccess.start()
+    
+    ## TODO: -----------------------------
+    if existWaitBlock(block):
+        for proccess in to_wait_block_processes:
+            proccess.join()
+            
+        ## RUN WAIT BLOCK wih run_pll in a new thread
+        thread = Thread(target=run_pll, args=(None, to_wait_block, False,))
+        thread.start()
+        thread.join()
+        
+    ## TODO: -----------------------------
 
     for proccess in command_proccesses:
         proccess.join()
 
     for proccess in proccesses_to_wait:
         proccess.join()
+        
+    
 
     for file in files_to_delete:
         os.remove(file)
@@ -301,6 +382,9 @@ def handle_time_block(command):
     increment_pyskell_pc(len(time_block))
     # pyskell_pc += len(time_block)
 
+def handle_wait_block(command):
+    pass
+
 def handle_prebuild_command(command):
     regex = re.compile(r"[:;][a-zA-Z]+$")
     
@@ -316,14 +400,18 @@ def handle_prebuild_command(command):
             ':pl': handle_parallel_block,
             ':co': handle_concurrent_block,
             ':ti': handle_time_block,
+            ':wa': handle_wait_block,
         }
         prebuild_commands.get(match.group(0), lambda: None)(command)
     else:
         return "continue"
 
 
-def run_command(comando, with_return=False):
+def run_command(comando, with_return=False, main_variables_hash=None):
     from pyskell_special_commands import special_commands
+    
+    if main_variables_hash is not None:
+        variables.set_id(main_variables_hash)
 
     if comando.startswith('_$'):
         handle_prebuild_command(comando)
@@ -354,10 +442,8 @@ def run_command(comando, with_return=False):
 
     are_variables = re.compile(r'%.*?%')
     if are_variables.search(comando):
-        comando = replace_variables_in_command(comando)
-
+        # comando = replace_variables_in_command(comando)
         comando, _ = replace_variables_in_command(comando)
-
         comando = evaluate_arithmetic_expressions(comando)
 
     comando_split = None
@@ -422,20 +508,28 @@ def load_program(file):
     return program
 
 
-def run_pll(file=None, program=None, principal=True):
+def run_pll(file=None, program=None, principal=True, main_variables_hash=None):
     global loaded_program
     global is_main_program
     is_main_program = principal
+    
+    if not principal and main_variables_hash is not None:
+        variables.set_id(main_variables_hash)
 
     if program is None and file is not None and principal:
         loaded_program = load_program(file)
         program = loaded_program
+    elif program is None and file is not None and not principal:
+        program = load_program(file)
+        if loaded_program == []:
+            loaded_program = program
     elif program is None and file is None:
         return "Error."
     
     set_pyskell_pc(0)
 
     while get_pyskell_pc() < len(program):
+        
         try:
             comando = program[get_pyskell_pc()]
             regex = re.compile(r"[;][a-zA-Z]+$")

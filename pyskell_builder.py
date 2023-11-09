@@ -48,18 +48,18 @@ def build_complete_block(name, block, args = None):
     return [f'_${unique_id}$:{name}' + ((f' {args}') if args is not None else '')] + block + [f'_${unique_id}$;{name}']
 
 def to_parallel_rpll_block(block):
-    unique_name = 'pl'
-    return build_complete_block(unique_name, block[1])
+    return build_complete_block('pl', block[1])
 
 def to_concurrent_rpll_block(block):
-    unique_name = 'co'
-    return build_complete_block(unique_name, block[1])
+    return build_complete_block('co', block[1])
 
 def to_time_rpll_block(block):
     split = block[0].split(' ', 1)
     args = split[1] if len(split) > 1 else None
-    unique_name = 'ti'
-    return build_complete_block(unique_name, block[1], args)
+    return build_complete_block('ti', block[1], args)
+
+def to_wait_rpll_block(block):
+    return build_complete_block('wa', block[1])
 
 def to_for_rpll_block(block):
     command, block = block
@@ -93,6 +93,7 @@ def handle_tuple_block(block):
         'parallel': to_parallel_rpll_block,
         'concurrent': to_concurrent_rpll_block,
         'time': to_time_rpll_block,
+        'wait': to_wait_rpll_block,
         'for': to_for_rpll_block,
     }
     return options.get(block[0].split()[0], lambda: None)(block)
@@ -221,17 +222,17 @@ def separe_rpll_and_calculable_lines(expanded_lines):
     return rpll_lines, calculable_lines
 
 
-def throw_duplicates(elements):
-    new_elements = []
-    seen = set()
+# def throw_duplicates(elements):
+#     new_elements = []
+#     seen = set()
 
-    for element in elements:
-        name = element["name"]
-        if name not in seen:
-            seen.add(name)
-            new_elements.append(element)
+#     for element in elements:
+#         name = element["name"]
+#         if name not in seen:
+#             seen.add(name)
+#             new_elements.append(element)
 
-    return new_elements
+#     return new_elements
 
 
 def build(file, print_log=False):
@@ -245,21 +246,26 @@ def build(file, print_log=False):
 
     expanded_lines = post_process_expanded_lines(expanded_lines)
 
-    rpll_lines, calculable_lines = separe_rpll_and_calculable_lines(
+    _, calculable_lines = separe_rpll_and_calculable_lines(
         expanded_lines)
 
-    print_if(print_log, 'rpll_lines: ', rpll_lines)
+    # print_if(print_log, 'rpll_lines: ', rpll_lines)
     print_if(print_log, 'calculable_lines: ', calculable_lines)
 
     for i in calculable_lines:
         [left_side, _] = i.split('=')
-        variables.append({
+        variables.add({
             "name": left_side.strip(),
             "value": None,
             "hash": f"%{str(abs(hash(f'{left_side.strip()}')))}%"
         })
+        # variables.append({
+        #     "name": left_side.strip(),
+        #     "value": None,
+        #     "hash": f"%{str(abs(hash(f'{left_side.strip()}')))}%"
+        # })
 
-    print_if(print_log, 'variables: ', throw_duplicates(variables))
+    # print_if(print_log, 'variables: ', throw_duplicates(variables))
 
     for i, line in enumerate(expanded_lines):
         for variable in variables:

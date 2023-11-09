@@ -7,10 +7,11 @@ def log_pyskell(s):
 log = PyskellFunction('log', log_pyskell, type=(str, str))
 
 # Función factorial (Number -> Number)
-def factorial_pyskell(n: number) -> number:
+def factorial_pyskell(n):
     n = number(n)
     return n * factorial_pyskell(n-1) if n > 1 else 1
-factorial = PyskellFunction('factorial', factorial_pyskell, type=(number, number))
+factorial = PyskellFunction(
+    'factorial', factorial_pyskell, type=(number, number))
 
 # Función double (Number -> Number)
 def double_pyskell(n):
@@ -20,10 +21,11 @@ double = PyskellFunction('double', double_pyskell, type=(number, number))
 
 # Función sum (Number -> Number -> Number)
 def sum_pyskell(n: number) -> PyskellFunction:
-    def inner_sum_pyskell (m: number) -> number:
+    def inner_sum_pyskell(m: number) -> number:
         return number(n) + number(m)
-    return PyskellFunction(func=inner_sum_pyskell, type=(number,number))
-sum = PyskellFunction('sum', sum_pyskell, type=(number, PyskellFunction(type=(number,number))))
+    return PyskellFunction(func=inner_sum_pyskell, type=(number, number))
+sum = PyskellFunction('sum', sum_pyskell, type=(
+    number, PyskellFunction(type=(number, number))))
 
 # Función upperCase (String -> String)
 def upperCase_pyskell(s):
@@ -56,25 +58,37 @@ def isStrEq_pyskell(s):
     def inner_isStrEq_pyskell(x):
         return s == x
     return PyskellFunction(func=inner_isStrEq_pyskell, type=(str, bool))
-isStrEq = PyskellFunction('isStrEq', isStrEq_pyskell, type=(str, PyskellFunction(type=(str, bool))))
+isStrEq = PyskellFunction('isStrEq', isStrEq_pyskell, type=(
+    str, PyskellFunction(type=(str, bool))))
 
 # Función isStrEq (String)
 def helloWorld_pyskell():
     return "Hello World!"
-helloWorld = PyskellFunction('helloWorld', helloWorld_pyskell, type=(None,str))
+helloWorld = PyskellFunction(
+    'helloWorld', helloWorld_pyskell, type=(None, str))
 
 # Función fibonacci (Number -> Number)
 def fibonacci_pyskell(n):
     n = number(n)
     return number(fibonacci_pyskell(n-1) + fibonacci_pyskell(n-2) if n > 1 else n)
-fibonacci = PyskellFunction('fibonacci', fibonacci_pyskell, type=(number, number))
+fibonacci = PyskellFunction(
+    'fibonacci', fibonacci_pyskell, type=(number, number))
 
 # Función sleep (Number -> Number) (Make action)
 def sleep_pyskell(n):
     import time
-    time.sleep(int(n))
+    time.sleep(float(n))
     return n
-sleep = PyskellFunction('sleep', sleep_pyskell, type=(int, int))
+sleep = PyskellFunction('sleep', sleep_pyskell, type=(float, float))
+
+# Función abs (Number -> Number)
+def abs_pyskell(n):
+    n = number(n)
+    if n < 0:
+        return number(n * -1)
+    else:
+        return number(n)
+_abs = PyskellFunction('abs', abs_pyskell, type=(number, number))
 
 def abs_pyskell(n):
     n = number(n)
@@ -91,5 +105,6 @@ nicov_functions = [sleep, log, factorial, double, sum, upperCase, lowerCase, len
                    isStrEq, helloWorld, fibonacci, _abs]
 
 functions = nicov_functions + lean_functions + nicor_functions
+
 # Exported functions
 pyskell_exported_functions = functions
