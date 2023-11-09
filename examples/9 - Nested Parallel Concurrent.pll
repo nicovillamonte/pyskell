@@ -1,7 +1,7 @@
-log "Sleeps in parallel:"
+log "Nested Parallel and Concurrent:"
 parallel
   concurrent
     fibonacci 31
     fibonacci 29
   fibonacci 30
-log "Fin del programa"
+log "End of Program"
