@@ -201,7 +201,61 @@ def and_pyskell(arr):
         return arr[0] and and_pyskell(arr[1:])
 and_ = PyskellFunction('and', and_pyskell, type=(list,bool))
 
-lean_functions = [compare_, cos, sin, div, elem, exp, head, tail, signum, maximum, minimum, not_, or_, and_]
+# Función sqtr (Number -> Number)
+def sqtr_pyskell(n):
+    n = number(n)
+    import math
+    return math.sqrt(n)
+sqtr = PyskellFunction('sqtr', sqtr_pyskell, type=(number,number))
+
+# Función subtract (Number -> Number -> Number)
+def subtract_pyskell(n):
+    def inner_subtract_pyskell(m):
+        return number(n) - number(m)
+    return PyskellFunction(func=inner_subtract_pyskell, type=(number,number))
+subtract = PyskellFunction('subtract', subtract_pyskell, type=(number,PyskellFunction(type=(number,number))))
+
+
+#NO FUNCIONA PARA CADENAS
+# Función  succ (Number -> Number)
+def succ_pyskell(x):
+    #if isinstance(x, (int, float)):
+    #    return x + 1
+    #elif isinstance(x, str):
+    #    return chr(ord(x[0]) + 1)
+    #else:
+        # Incrementa el código ASCII del primer carácter en la cadena
+    #    raise TypeError("Tipo no compatible para la función succ_pyskell")
+    x = number(x)
+    return x + 1
+succ = PyskellFunction('succ', succ_pyskell, type=(number, number))
+
+#NO ESTARIA FUNCIONANDO
+# Función take (Number -> List -> List)
+def take_pyskell(n):
+    n = number(n)
+    def inner_take_pyskell(arr):
+        if n == 0 or not arr:
+            return []
+        n=n-1
+        return [arr[0]] + inner_take_pyskell(arr[1:])
+    return PyskellFunction(func=inner_take_pyskell, type=(list,list))
+take = PyskellFunction('take', take_pyskell, type=(number,PyskellFunction(type=(number,PyskellFunction(type=(list,list))))))
+
+# Función tan (Number -> Number)
+def tan_pyskell(n):
+    n=number(n)
+    import math
+    return math.tan(n)
+tan = PyskellFunction('tan', tan_pyskell, type=(number,number))
+
+
+
+
+lean_functions = [compare_, cos, sin, div, elem, exp, head, 
+                  tail, signum, maximum, minimum, not_, or_, and_, 
+                  sqtr, subtract, succ, take, tan
+                  ]
 nicor_functions = []
 nicov_functions = [sleep, log, factorial, double, sum, upperCase, lowerCase, length, sumOf, 
                    isStrEq, helloWorld, fibonacci, _abs]
