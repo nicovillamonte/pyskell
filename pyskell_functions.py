@@ -249,12 +249,36 @@ def tan_pyskell(n):
     return math.tan(n)
 tan = PyskellFunction('tan', tan_pyskell, type=(number,number))
 
+# Función truncate (Number -> Number)
+def truncate_pyskell(n):
+    value = number(n)
+    return int(value + 0.5) if value > 0 else int(value - 0.5)
+truncate = PyskellFunction('truncate', truncate_pyskell, type=(number,number))
 
+# Función rem (Number -> Number -> Number)
+def rem_truncate(n):
+    n = number(n)
+    def inner_rem_truncate(m):
+        m = number(m)
+        return number(n%m)
+    return PyskellFunction(func=inner_rem_truncate, type=(number,number))
+rem = PyskellFunction('rem', rem_truncate, type=(number,PyskellFunction(type=(number,number))))
+
+# Función concatMap(func -> List -> List)
+def concatmap_pyskell(func):
+    def inner_concatmap_pyskell(arr):
+        if len(arr) == 0:
+            return []
+        else:
+            return func(number(arr[0])) + inner_concatmap_pyskell(arr[1:])
+    return PyskellFunction(func=inner_concatmap_pyskell, type=(PyskellFunction(type=(number,list)),list))
+concatMap = PyskellFunction('concatMap', concatmap_pyskell, type=(PyskellFunction(type=(number,list)),PyskellFunction(type=(list,list))))
 
 
 lean_functions = [compare_, cos, sin, div, elem, exp, head, 
                   tail, signum, maximum, minimum, not_, or_, and_, 
-                  sqtr, subtract, succ, take, tan
+                  sqtr, subtract, succ, take, tan, truncate, rem,
+                    concatMap
                   ]
 nicor_functions = []
 nicov_functions = [sleep, log, factorial, double, sum, upperCase, lowerCase, length, sumOf, 
