@@ -216,31 +216,29 @@ def subtract_pyskell(n):
 subtract = PyskellFunction('subtract', subtract_pyskell, type=(number,PyskellFunction(type=(number,number))))
 
 
-#NO FUNCIONA PARA CADENAS
 # Función  succ (Number -> Number)
 def succ_pyskell(x):
-    #if isinstance(x, (int, float)):
-    #    return x + 1
-    #elif isinstance(x, str):
-    #    return chr(ord(x[0]) + 1)
-    #else:
-        # Incrementa el código ASCII del primer carácter en la cadena
-    #    raise TypeError("Tipo no compatible para la función succ_pyskell")
     x = number(x)
-    return x + 1
+    return x+1
 succ = PyskellFunction('succ', succ_pyskell, type=(number, number))
 
-#NO ESTARIA FUNCIONANDO
+# Función  succStr (Str -> Str)
+def succStr_pyskell(x):
+    x = ord(x)
+    return chr(x+1)
+succStr = PyskellFunction('succStr', succStr_pyskell, type=(str, str))
+
 # Función take (Number -> List -> List)
-def take_pyskell(n):
-    n = number(n)
-    def inner_take_pyskell(arr):
+def take_pyskell(n: number) -> PyskellFunction:
+    def inner_take_pyskell(arr: list) -> list:
+        nonlocal n
+        n = number(n)
         if n == 0 or not arr:
             return []
         n=n-1
         return [arr[0]] + inner_take_pyskell(arr[1:])
     return PyskellFunction(func=inner_take_pyskell, type=(list,list))
-take = PyskellFunction('take', take_pyskell, type=(number,PyskellFunction(type=(number,PyskellFunction(type=(list,list))))))
+take = PyskellFunction('take', take_pyskell, type=(number,PyskellFunction(type=(list,list))))
 
 # Función tan (Number -> Number)
 def tan_pyskell(n):
@@ -264,21 +262,9 @@ def rem_truncate(n):
     return PyskellFunction(func=inner_rem_truncate, type=(number,number))
 rem = PyskellFunction('rem', rem_truncate, type=(number,PyskellFunction(type=(number,number))))
 
-# Función concatMap(func -> List -> List)
-def concatmap_pyskell(func):
-    def inner_concatmap_pyskell(arr):
-        if len(arr) == 0:
-            return []
-        else:
-            return func(number(arr[0])) + inner_concatmap_pyskell(arr[1:])
-    return PyskellFunction(func=inner_concatmap_pyskell, type=(PyskellFunction(type=(number,list)),list))
-concatMap = PyskellFunction('concatMap', concatmap_pyskell, type=(PyskellFunction(type=(number,list)),PyskellFunction(type=(list,list))))
-
-
 lean_functions = [compare_, cos, sin, div, elem, exp, head, 
                   tail, signum, maximum, minimum, not_, or_, and_, 
-                  sqtr, subtract, succ, take, tan, truncate, rem,
-                    concatMap
+                  sqtr, subtract, succ, succStr, take, tan, truncate, rem
                   ]
 nicor_functions = []
 nicov_functions = [sleep, log, factorial, double, sum, upperCase, lowerCase, length, sumOf, 
