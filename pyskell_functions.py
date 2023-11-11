@@ -154,7 +154,7 @@ def drop_pyskell(n):
             return arr
         else:
             return arr[n:]
-    return PyskellFunction(func=inner_drop_pyskell, type=(number, PyskellFunction(type=(list, list))))
+    return PyskellFunction(func=inner_drop_pyskell, type=(list, list))
 drop = PyskellFunction('drop', drop_pyskell, type=(number, PyskellFunction(type=(list, list))))
 
 
@@ -334,15 +334,12 @@ def rem_truncate(n):
     return PyskellFunction(func=inner_rem_truncate, type=(number,number))
 rem = PyskellFunction('rem', rem_truncate, type=(number,PyskellFunction(type=(number,number))))
 
-lean_functions = [compare_, cos, sin, div, elem, exp, head, 
-                  tail, signum, maximum, minimum, not_, or_, and_, 
-                  sqtr, subtract, succ, succStr, take, tan, truncate, rem
-                  ]
-nicor_functions = [even, odd, negate, ceiling, drop, concat, _divMod]
-nicov_functions = [sleep, log, factorial, double, sum, upperCase, lowerCase, length, sumOf, 
-                   isStrEq, helloWorld, fibonacci, _abs]
-
-functions = nicov_functions + lean_functions + nicor_functions
-
 # Exported functions
-pyskell_exported_functions = functions
+pyskell_exported_functions = [
+    sleep, log, factorial, double, sum, upperCase, lowerCase, length, sumOf, 
+    isStrEq, helloWorld, fibonacci, _abs,
+    compare_, cos, sin, div, elem, exp, head, 
+    tail, signum, maximum, minimum, not_, or_, and_, 
+    sqtr, subtract, succ, succStr, take, tan, truncate, rem,
+    even, odd, negate, ceiling, drop, concat, _divMod
+]
