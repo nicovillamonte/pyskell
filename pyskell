@@ -1,0 +1,2 @@
+#!/bin/sh
+winpty python "$(dirname "$0")"/pyskell.py "$@"

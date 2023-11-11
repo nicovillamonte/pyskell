@@ -11,8 +11,9 @@
       "program": "pyskell.py",
       "console": "integratedTerminal",
       "justMyCode": true,
-      "args": ["archivo.pll"],
-      "cwd": "${workspaceFolder}"
+      "args": ["archivo.pll", "--print-assigns"],
+      "cwd": "${workspaceFolder}",
+      "subProcess": true
     }
   ]
 }
