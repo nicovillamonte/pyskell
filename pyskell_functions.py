@@ -130,7 +130,7 @@ def divmod_pyskell(n):
     def inner_divmod_pyskell(m):
         m = number(m)
         return (n // m, n % m)
-    return PyskellFunction(func=inner_divmod_pyskell, type=(number, PyskellFunction(type=(number, tuple))))
+    return PyskellFunction(func=inner_divmod_pyskell, type=(number, tuple))
 _divMod = PyskellFunction('divMod', divmod_pyskell, type=(number, PyskellFunction(type=(number, tuple))))
 
 # Función drop (Number -> List -> List)
@@ -148,7 +148,7 @@ drop = PyskellFunction('drop', drop_pyskell, type=(number, PyskellFunction(type=
 
 
 lean_functions = []
-nicor_functions = [even, odd, negate, ceiling, drop,concat, _divMod]
+nicor_functions = [even, odd, negate, ceiling, drop, concat, _divMod]
 nicov_functions = [sleep, log, factorial, double, sum, upperCase, lowerCase, length, sumOf, 
                    isStrEq, helloWorld, fibonacci, _abs]
 
