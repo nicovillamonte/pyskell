@@ -99,6 +99,64 @@ def abs_pyskell(n):
 _abs = PyskellFunction('abs', abs_pyskell, type=(number,number))
 
 
+# Función even (Number -> Bool)
+def even_pyskell(n):
+    n = number(n)
+    return n % 2 == 0
+even = PyskellFunction('even', even_pyskell, type=(number, bool))
+
+# Funcion odd (Number -> Bool)
+def odd_pyskell(n):
+    n = number(n)
+    return n % 2 != 0
+odd = PyskellFunction('odd', odd_pyskell, type=(number, bool))
+
+# Función negate (Bool -> Bool)
+def negate_pyskell(n):
+    n = number(n)
+    return n * -1
+negate = PyskellFunction('negate', negate_pyskell, type=(number, number))
+
+
+#Función ceiling (Number -> Number)
+def ceiling_pyskell(n):
+    n = number(n)
+    if n == number(int(n)) or n < 0:
+        return number(int(n))
+    else:
+        return number(int(n)) + 1
+ceiling = PyskellFunction('ceiling', ceiling_pyskell, type=(number, number))
+
+
+#Función concat (List -> List) 
+def concat_pyskell(list_of_lists):
+    result = []
+    for sublist in list_of_lists:
+        result.extend(sublist)
+    return result
+concat = PyskellFunction('concat', concat_pyskell, type=(list, list))
+
+
+# Función divmod (Number -> Number -> Tuple)
+def divmod_pyskell(n):
+    n = number(n)
+    def inner_divmod_pyskell(m):
+        m = number(m)
+        return (n // m, n % m)
+    return PyskellFunction(func=inner_divmod_pyskell, type=(number, tuple))
+_divMod = PyskellFunction('divMod', divmod_pyskell, type=(number, PyskellFunction(type=(number, tuple))))
+
+# Función drop (Number -> List -> List)
+def drop_pyskell(n):
+    n = int(n)
+    def inner_drop_pyskell(arr):
+        if n <= 0:
+            return arr
+        else:
+            return arr[n:]
+    return PyskellFunction(func=inner_drop_pyskell, type=(number, PyskellFunction(type=(list, list))))
+drop = PyskellFunction('drop', drop_pyskell, type=(number, PyskellFunction(type=(list, list))))
+
 
 # Función compare (Number -> Number -> String)
 def compare(n):
@@ -280,7 +338,7 @@ lean_functions = [compare_, cos, sin, div, elem, exp, head,
                   tail, signum, maximum, minimum, not_, or_, and_, 
                   sqtr, subtract, succ, succStr, take, tan, truncate, rem
                   ]
-nicor_functions = []
+nicor_functions = [even, odd, negate, ceiling, drop, concat, _divMod]
 nicov_functions = [sleep, log, factorial, double, sum, upperCase, lowerCase, length, sumOf, 
                    isStrEq, helloWorld, fibonacci, _abs]
 
